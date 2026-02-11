@@ -1,34 +1,23 @@
 import genanki
+from models import Deck, Card, Model
 
 
-def add_card_to_deck():
+def add_card_to_deck(deck: Deck, model: Model, card: Card):
+    return deck.add_note(genanki.Note(model=model, fields=[card.question, card.answer]))
+
+
+def create_deck(deck_name: str):
+    new_deck = Deck(deck_name=deck_name)
+    return genanki.Deck(new_deck.anki_code, new_deck.deck_name)
+
+
+def delete_card_from_deck():
     pass
 
 
-def create_deck():
+def delete_deck():
     pass
 
 
-# my_deck = genanki.Deck(2059400110, "My Custom Deck")
-#
-# my_model = genanki.Model(
-#     1607392319,
-#     "Simple Model",
-#     fields=[
-#         {"name": "Question"},
-#         {"name": "Answer"},
-#     ],
-#     templates=[
-#         {
-#             "name": "Card 1",
-#             "qfmt": "{{Question}}",
-#             "afmt": '{{FrontSide}}<hr id="answer">{{Answer}}',
-#         },
-#     ],
-# )
-#
-# my_deck.add_note(
-#     genanki.Note(model=my_model, fields=["What is sodium nitrite?", "NaNO₂"])
-# )
-#
-# genanki.Package(my_deck).write_to_file("my_deck.apkg")
+def move_card_to_new_deck():
+    pass
