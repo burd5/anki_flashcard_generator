@@ -13,3 +13,6 @@ wheels/
 *.apkg
 .env
 
+# Claude Files
+.claude
+PLAN.md
