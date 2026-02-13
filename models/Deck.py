@@ -1,6 +1,6 @@
 from pydantic import BaseModel
+from typing import List
 
 
 class Deck(BaseModel):
-    deck_name: str
-    anki_code: int = 2059400110
+    pass

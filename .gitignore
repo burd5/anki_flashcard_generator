@@ -11,3 +11,8 @@ wheels/
 
 # Deck Files
 *.apkg
+.env
+
+# Claude Files
+.claude
+PLAN.md
