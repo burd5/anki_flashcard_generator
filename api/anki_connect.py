@@ -1,3 +1,5 @@
+from http import HTTPStatus
+from models.Note import Note
 import json
 import urllib.request
 
@@ -20,14 +22,31 @@ def invoke(action, **params):
     return response["result"]
 
 
-invoke("createDeck", deck="MyDeck")
+def deck_exists(deck_name: str) -> bool:
+    decks = invoke("deckNames")
+    return deck_name in decks
 
-invoke(
-    "addNote",
-    note={
-        "deckName": "MyDeck",
-        "modelName": "Basic",
-        "fields": {"Front": "What is the capital of France?", "Back": "Paris"},
-        "tags": ["geography"],
-    },
-)
+
+def create_deck(deck_name: str) -> HTTPStatus:
+    exists = deck_exists(deck_name)
+    try:
+        if not exists:
+            invoke("createDeck", deck=deck_name)
+            return HTTPStatus.OK
+        return HTTPStatus.BAD_REQUEST
+    except Exception:
+        return HTTPStatus.BAD_REQUEST
+
+
+def add_note_to_deck(note: Note) -> HTTPStatus:
+    response = invoke(
+        "addNote",
+        note={
+            "deckName": note.deckName,
+            "modelName": note.modelName,
+            "fields": {"Front": note.front, "Back": note.back},
+            "tags": note.tags,
+        },
+    )
+    if response:
+        return HTTPStatus.OK
