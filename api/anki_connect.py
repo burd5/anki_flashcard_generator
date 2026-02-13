@@ -8,11 +8,7 @@ def request(action, **params):
 
 def invoke(action, **params):
     requestJson = json.dumps(request(action, **params)).encode("utf-8")
-    response = json.load(
-        urllib.request.urlopen(
-            urllib.request.Request("http://127.0.0.1:8765", requestJson)
-        )
-    )
+    response = json.load(urllib.request.urlopen(urllib.request.Request("http://127.0.0.1:8765", requestJson)))
     if len(response) != 2:
         raise Exception("response has an unexpected number of fields")
     if "error" not in response:
@@ -24,4 +20,14 @@ def invoke(action, **params):
     return response["result"]
 
 
-invoke("createDeck", deck="test1")
+invoke("createDeck", deck="MyDeck")
+
+invoke(
+    "addNote",
+    note={
+        "deckName": "MyDeck",
+        "modelName": "Basic",
+        "fields": {"Front": "What is the capital of France?", "Back": "Paris"},
+        "tags": ["geography"],
+    },
+)
