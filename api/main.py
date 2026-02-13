@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from anki_connect import create_deck, add_note_to_deck
-from models.Note import Note
 
 app = FastAPI()
 
