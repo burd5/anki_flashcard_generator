@@ -28,17 +28,16 @@ def deck_exists(deck_name: str) -> bool:
 
 
 def create_deck(deck_name: str) -> HTTPStatus:
-    exists = deck_exists(deck_name)
     try:
-        if not exists:
-            invoke("createDeck", deck=deck_name)
-            return HTTPStatus.OK
-        return HTTPStatus.BAD_REQUEST
+        invoke("createDeck", deck=deck_name)
+        return HTTPStatus.OK
     except Exception:
         return HTTPStatus.BAD_REQUEST
 
 
 def add_note_to_deck(note: Note) -> HTTPStatus:
+    if not deck_exists(note.deckName):
+        create_deck(note.deckName)
     response = invoke(
         "addNote",
         note={
