@@ -1,20 +1,15 @@
 from dotenv import load_dotenv
 import uuid
-from http import HTTPStatus
-from typing import Tuple, List
 from services.definition_api import get_word_definition
 from models import Note
 
-import requests
 import os
 
 load_dotenv()
-
 CLIPPINGS_FILE = os.getenv("PATH_TO_CLIPPINGS_FILE", None)
-CREATE_FLASHCARD_ENDPOINT = os.getenv("CREATE_FLASHCARD_ENDPOINT", None)
 
 
-def get_kindle_clippings_file():
+def get_kindle_clippings_file() -> list[str]:
     """Grabs Kindle Clippings.txt file and parses highlights"""
     with open(CLIPPINGS_FILE) as f:
         notes_and_highlights = f.read().split("==========")
@@ -22,7 +17,8 @@ def get_kindle_clippings_file():
         return highlights
 
 
-def clip_highlights(highlights: List[str]) -> HTTPStatus:
+def parse_highlights(highlights: list[str]) -> list[Note]:
+    notes = []
     for highlight in highlights:
         text_and_author, highlighted_text = parse_highlight(highlight)
         card_front, card_back, deck_name = format_note(text_and_author, highlighted_text)
@@ -31,11 +27,11 @@ def clip_highlights(highlights: List[str]) -> HTTPStatus:
             front=card_front,
             back=card_back,
         )
-        response = requests.post(CREATE_FLASHCARD_ENDPOINT, json=note.model_dump())
-        return response
+        notes.append(note)
+    return notes
 
 
-def parse_highlight(highlight: str) -> Tuple(str, str):
+def parse_highlight(highlight: str) -> tuple[str, str]:
     lines = highlight.split("\n")
     title_and_author = lines[0] if lines[0] else lines[1]
     highlighted_text = lines[4]
@@ -43,7 +39,7 @@ def parse_highlight(highlight: str) -> Tuple(str, str):
     return title_and_author, highlighted_text
 
 
-def format_note(title_and_author: str, highlighted_text: str) -> Tuple(str, str, str):
+def format_note(title_and_author: str, highlighted_text: str) -> tuple[str, str, str]:
     # if highlighted text is single word, assume definition
     is_single_word = len(highlighted_text.split()) == 1
     # remove commas from single highlighted words
