@@ -50,7 +50,7 @@ def process_kindle_clippings():
         except AnkiConnectUnavailableError as e:
             return JSONResponse(status_code=HTTPStatus.BAD_GATEWAY, content={"error": str(e)})
         except AnkiConnectError as e:
-            errors.append(str(e))
+            errors.append((note.__dict__, str(e)))
     status = HTTPStatus.CREATED if created > 0 else HTTPStatus.BAD_REQUEST
     return JSONResponse(
         status_code=status,

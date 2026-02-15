@@ -22,6 +22,8 @@ def parse_highlights(highlights: list[str]) -> list[Note]:
     for highlight in highlights:
         text_and_author, highlighted_text = parse_highlight(highlight)
         card_front, card_back, deck_name = format_note(text_and_author, highlighted_text)
+        if card_back == "":
+            continue
         note = Note(
             deckName=deck_name,
             front=card_front,
@@ -46,8 +48,7 @@ def format_note(title_and_author: str, highlighted_text: str) -> tuple[str, str,
     if is_single_word:
         highlighted_text = highlighted_text.rstrip(",")
     card_back = get_word_definition(highlighted_text) if is_single_word else highlighted_text
-    # TO-DO: Use ollama/tiny llm to form questions based on passage
-    card_front = highlighted_text if is_single_word else str(uuid.uuid4())
+    card_front = highlighted_text if is_single_word else highlighted_text
     deck_name = "Vocab" if is_single_word else title_and_author
 
     return card_front, card_back, deck_name
