@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: anki-handler
+  namespace: anki-handler
+spec:
+  selector:
+    app: anki-handler
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP

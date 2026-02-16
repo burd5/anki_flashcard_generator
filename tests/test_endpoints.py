@@ -17,6 +17,15 @@ def client() -> TestClient:
     return TestClient(app)
 
 
+class TestHealthzEndpoint:
+
+    def test_returns_200_with_status_ok(self, client: TestClient) -> None:
+        response = client.get("/healthz")
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.json() == {"status": "ok"}
+
+
 class TestCreateFlashcardEndpoint:
 
     def test_returns_201_with_note_id_on_success(

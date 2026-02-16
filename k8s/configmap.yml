@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: anki-handler-config
+  namespace: anki-handler
+data:
+  PATH_TO_CLIPPINGS_FILE: "/clippings/My Clippings.txt"
+  DICTIONARY_API_URL: "https://api.dictionaryapi.dev/api/v2/entries/en"

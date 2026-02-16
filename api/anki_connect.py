@@ -3,8 +3,11 @@ from typing import Any
 from models.Note import Note
 from api.exceptions import AnkiConnectError, AnkiConnectUnavailableError
 import json
+import os
 import urllib.request
 import urllib.error
+
+_DEFAULT_ANKI_CONNECT_URL = "http://127.0.0.1:8765"
 
 
 def request(action: str, **params: Any) -> dict[str, Any]:
@@ -13,8 +16,13 @@ def request(action: str, **params: Any) -> dict[str, Any]:
 
 def invoke(action: str, **params: Any) -> Any:
     requestJson = json.dumps(request(action, **params)).encode("utf-8")
+    url = os.environ.get("ANKI_CONNECT_URL", _DEFAULT_ANKI_CONNECT_URL)
     try:
-        response = json.load(urllib.request.urlopen(urllib.request.Request("http://127.0.0.1:8765", requestJson)))
+        response = json.load(
+            urllib.request.urlopen(
+                urllib.request.Request(url, requestJson)
+            )
+        )
     except urllib.error.URLError:
         raise AnkiConnectUnavailableError("AnkiConnect is not reachable")
     if len(response) != 2:

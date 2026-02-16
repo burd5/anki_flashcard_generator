@@ -9,6 +9,11 @@ from models.Note import Note
 app = FastAPI()
 
 
+@app.get("/healthz")
+def healthz() -> dict[str, str]:
+    return {"status": "ok"}
+
+
 @app.post("/create_flashcard")
 def add_card(note: Note):
     try:
