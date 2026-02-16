@@ -1,10 +1,12 @@
+from http import HTTPStatus
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from http import HTTPStatus
-from api.anki_connect import create_deck, add_note_to_deck
+
+from api.anki_connect import add_note_to_deck, create_deck
 from api.exceptions import AnkiConnectError, AnkiConnectUnavailableError
-from services.kindle import get_kindle_clippings_file, parse_highlights
 from models.Note import Note
+from services.kindle import get_kindle_clippings_file, parse_highlights
 
 app = FastAPI()
 

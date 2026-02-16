@@ -1,11 +1,11 @@
-from typing import Any
-
-from models.Note import Note
-from api.exceptions import AnkiConnectError, AnkiConnectUnavailableError
 import json
 import os
-import urllib.request
 import urllib.error
+import urllib.request
+from typing import Any
+
+from api.exceptions import AnkiConnectError, AnkiConnectUnavailableError
+from models.Note import Note
 
 _DEFAULT_ANKI_CONNECT_URL = "http://127.0.0.1:8765"
 
