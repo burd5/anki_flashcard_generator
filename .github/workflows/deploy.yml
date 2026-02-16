@@ -42,6 +42,7 @@ jobs:
 
       - name: Deploy to k3s
         run: |
+          kubectl apply -f k8s/namespace.yml
           kubectl apply -f k8s/
           kubectl rollout restart deployment/anki-handler -n anki-handler
           kubectl rollout status deployment/anki-handler -n anki-handler --timeout=120s
