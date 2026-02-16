@@ -1,24 +1,30 @@
-from http import HTTPStatus
+from typing import Any
+
 from models.Note import Note
+from api.exceptions import AnkiConnectError, AnkiConnectUnavailableError
 import json
 import urllib.request
+import urllib.error
 
 
-def request(action, **params):
+def request(action: str, **params: Any) -> dict[str, Any]:
     return {"action": action, "params": params, "version": 6}
 
 
-def invoke(action, **params):
+def invoke(action: str, **params: Any) -> Any:
     requestJson = json.dumps(request(action, **params)).encode("utf-8")
-    response = json.load(urllib.request.urlopen(urllib.request.Request("http://127.0.0.1:8765", requestJson)))
+    try:
+        response = json.load(urllib.request.urlopen(urllib.request.Request("http://127.0.0.1:8765", requestJson)))
+    except urllib.error.URLError:
+        raise AnkiConnectUnavailableError("AnkiConnect is not reachable")
     if len(response) != 2:
-        raise Exception("response has an unexpected number of fields")
+        raise AnkiConnectError("response has an unexpected number of fields")
     if "error" not in response:
-        raise Exception("response is missing required error field")
+        raise AnkiConnectError("response is missing required error field")
     if "result" not in response:
-        raise Exception("response is missing required result field")
+        raise AnkiConnectError("response is missing required result field")
     if response["error"] is not None:
-        raise Exception(response["error"])
+        raise AnkiConnectError(response["error"])
     return response["result"]
 
 
@@ -27,19 +33,14 @@ def deck_exists(deck_name: str) -> bool:
     return deck_name in decks
 
 
-def create_deck(deck_name: str) -> HTTPStatus:
-    exists = deck_exists(deck_name)
-    try:
-        if not exists:
-            invoke("createDeck", deck=deck_name)
-            return HTTPStatus.OK
-        return HTTPStatus.BAD_REQUEST
-    except Exception:
-        return HTTPStatus.BAD_REQUEST
+def create_deck(deck_name: str) -> int:
+    return invoke("createDeck", deck=deck_name)
 
 
-def add_note_to_deck(note: Note) -> HTTPStatus:
-    response = invoke(
+def add_note_to_deck(note: Note) -> int:
+    if not deck_exists(note.deckName):
+        create_deck(note.deckName)
+    return invoke(
         "addNote",
         note={
             "deckName": note.deckName,
@@ -48,5 +49,3 @@ def add_note_to_deck(note: Note) -> HTTPStatus:
             "tags": note.tags,
         },
     )
-    if response:
-        return HTTPStatus.OK
