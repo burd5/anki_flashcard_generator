@@ -33,6 +33,15 @@ def _fake_urlopen_raising_urlerror(req):
     raise urllib.error.URLError("connection refused")
 
 
+def _capture_urlopen(captured_requests: list):
+    """Return a callable that captures Request objects and returns a success response."""
+    def capture(req):
+        captured_requests.append(req)
+        data = json.dumps({"result": None, "error": None}).encode("utf-8")
+        return io.BytesIO(data)
+    return capture
+
+
 class TestRequest:
     """Pure function -- no mocking needed (Level 0)."""
 
@@ -242,13 +251,7 @@ class TestAnkiConnectUrl:
         monkeypatch.delenv("ANKI_CONNECT_URL", raising=False)
 
         captured_requests = []
-
-        def capture_urlopen(req):
-            captured_requests.append(req)
-            data = json.dumps({"result": None, "error": None}).encode("utf-8")
-            return io.BytesIO(data)
-
-        monkeypatch.setattr("urllib.request.urlopen", capture_urlopen)
+        monkeypatch.setattr("urllib.request.urlopen", _capture_urlopen(captured_requests))
 
         invoke("deckNames")
 
@@ -262,13 +265,7 @@ class TestAnkiConnectUrl:
         monkeypatch.setenv("ANKI_CONNECT_URL", custom_url)
 
         captured_requests = []
-
-        def capture_urlopen(req):
-            captured_requests.append(req)
-            data = json.dumps({"result": None, "error": None}).encode("utf-8")
-            return io.BytesIO(data)
-
-        monkeypatch.setattr("urllib.request.urlopen", capture_urlopen)
+        monkeypatch.setattr("urllib.request.urlopen", _capture_urlopen(captured_requests))
 
         invoke("deckNames")
 
