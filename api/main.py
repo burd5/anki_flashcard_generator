@@ -1,16 +1,23 @@
+from http import HTTPStatus
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from http import HTTPStatus
-from api.anki_connect import create_deck, add_note_to_deck
+
+from api.anki_connect import add_note_to_deck, create_deck
 from api.exceptions import AnkiConnectError, AnkiConnectUnavailableError
-from services.kindle import get_kindle_clippings_file, parse_highlights
 from models.Note import Note
+from services.kindle import get_kindle_clippings_file, parse_highlights
 
 app = FastAPI()
 
 
+@app.get("/healthz")
+def healthz() -> dict[str, str]:
+    return {"status": "ok"}
+
+
 @app.post("/create_flashcard")
-def add_card(note: Note):
+def add_card(note: Note) -> JSONResponse:
     try:
         note_id = add_note_to_deck(note)
         return JSONResponse(status_code=HTTPStatus.CREATED, content={"note_id": note_id})
@@ -21,7 +28,7 @@ def add_card(note: Note):
 
 
 @app.post("/create_deck/{deck}")
-def add_deck(deck: str):
+def add_deck(deck: str) -> JSONResponse:
     try:
         deck_id = create_deck(deck)
         return JSONResponse(status_code=HTTPStatus.CREATED, content={"deck_id": deck_id})
@@ -32,7 +39,7 @@ def add_deck(deck: str):
 
 
 @app.post("/process_kindle_clippings")
-def process_kindle_clippings():
+def process_kindle_clippings() -> JSONResponse:
     try:
         highlights = get_kindle_clippings_file()
         notes = parse_highlights(highlights)

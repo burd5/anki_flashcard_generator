@@ -33,6 +33,15 @@ def _fake_urlopen_raising_urlerror(req):
     raise urllib.error.URLError("connection refused")
 
 
+def _capture_urlopen(captured_requests: list):
+    """Return a callable that captures Request objects and returns a success response."""
+    def capture(req):
+        captured_requests.append(req)
+        data = json.dumps({"result": None, "error": None}).encode("utf-8")
+        return io.BytesIO(data)
+    return capture
+
+
 class TestRequest:
     """Pure function -- no mocking needed (Level 0)."""
 
@@ -232,3 +241,33 @@ class TestAddNoteToDeck:
             "tags": ["test"],
         }
         assert captured_kwargs["note"] == expected_note
+
+
+class TestAnkiConnectUrl:
+
+    def test_default_anki_connect_url(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("ANKI_CONNECT_URL", raising=False)
+
+        captured_requests = []
+        monkeypatch.setattr("urllib.request.urlopen", _capture_urlopen(captured_requests))
+
+        invoke("deckNames")
+
+        assert len(captured_requests) == 1
+        assert captured_requests[0].full_url == "http://127.0.0.1:8765"
+
+    def test_invoke_uses_custom_url_from_env(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        custom_url = "http://custom:9999"
+        monkeypatch.setenv("ANKI_CONNECT_URL", custom_url)
+
+        captured_requests = []
+        monkeypatch.setattr("urllib.request.urlopen", _capture_urlopen(captured_requests))
+
+        invoke("deckNames")
+
+        assert len(captured_requests) == 1
+        assert captured_requests[0].full_url == custom_url

@@ -44,6 +44,54 @@ AnkiHandler provides a REST API that communicates with a running Anki instance t
 
    The API will be available at `http://localhost:8000`
 
+## Deployment
+
+### Docker
+
+Build and run locally:
+
+```bash
+docker build -t anki-handler .
+docker run -p 8000:8000 -e ANKI_CONNECT_URL=http://host.docker.internal:8765 anki-handler
+```
+
+The Dockerfile uses a multi-stage build with Python 3.12 and runs as a non-root user.
+
+### Kubernetes (k3s)
+
+Deploy to Raspberry Pi:
+
+```bash
+kubectl apply -f k8s/
+```
+
+Manifests in `k8s/` directory:
+- `namespace.yaml` - Creates `anki-handler` namespace
+- `configmap.yaml` - Environment configuration
+- `deployment.yaml` - Application deployment with health checks
+- `service.yaml` - ClusterIP service
+- `ingress.yaml` - Traefik ingress (k3s default)
+
+### CI/CD
+
+GitHub Actions pipeline (`.github/workflows/deploy.yml`):
+
+- **Trigger**: Push to `main` or manual workflow dispatch
+- **Test**: Runs on GitHub-hosted runner
+- **Build + Deploy**: Runs on self-hosted runner (Raspberry Pi)
+  - Builds Docker image
+  - Pushes to `ghcr.io`
+  - Applies Kubernetes manifests
+
+### Pi Prerequisites
+
+For the CI/CD pipeline to work:
+
+- Self-hosted GitHub Actions runner configured on Pi
+- Docker installed, runner user has docker access
+- k3s running with kubectl configured
+- AnkiConnect configured to bind `0.0.0.0` and whitelist pod CIDR (`10.42.0.0/16`)
+
 ## API Reference
 
 ### Create Flashcard
@@ -138,10 +186,11 @@ uv run pytest --cov=api --cov=services --cov=models
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PATH_TO_CLIPPINGS_FILE` | Absolute path to Kindle's `My Clippings.txt` | Required |
-| `DICTIONARY_API_URL` | Base URL for word definition API | `https://api.dictionaryapi.dev/api/v2/entries/en/` |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ANKI_CONNECT_URL` | `http://127.0.0.1:8765` | AnkiConnect API endpoint |
+| `PATH_TO_CLIPPINGS_FILE` | None | Path to Kindle clippings file |
+| `DICTIONARY_API_URL` | `https://api.dictionaryapi.dev/api/v2/entries/en` | Dictionary API base URL |
 
 ## Troubleshooting
 

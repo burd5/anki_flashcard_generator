@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anki-handler
+  namespace: anki-handler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: anki-handler
+  template:
+    metadata:
+      labels:
+        app: anki-handler
+    spec:
+      containers:
+        - name: anki-handler
+          image: ghcr.io/burd5/anki-handler:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "96Mi"
+              cpu: "100m"
+            limits:
+              memory: "192Mi"
+              cpu: "250m"
+          envFrom:
+            - configMapRef:
+                name: anki-handler-config
+          env:
+            - name: NODE_HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ANKI_CONNECT_URL
+              value: "http://$(NODE_HOST_IP):8765"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: clippings
+              mountPath: /clippings
+      volumes:
+        - name: clippings
+          hostPath:
+            path: /home/burd/clippings
+            type: Directory

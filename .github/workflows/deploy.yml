@@ -1,0 +1,48 @@
+name: Test, Build & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync
+      - run: uv run pytest
+
+  build-deploy:
+    needs: test
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Set image tag
+        run: echo "IMG=ghcr.io/${{ github.repository_owner }}/anki-handler" >> "$GITHUB_ENV"
+
+      - name: Build image
+        run: docker build -t "$IMG:sha-${GITHUB_SHA::7}" -t "$IMG:latest" .
+
+      - name: Push image
+        run: |
+          docker push "$IMG:sha-${GITHUB_SHA::7}"
+          docker push "$IMG:latest"
+
+      - name: Deploy to k3s
+        run: |
+          kubectl apply -f k8s/namespace.yml
+          kubectl apply -f k8s/
+          kubectl rollout restart deployment/anki-handler -n anki-handler
+          kubectl rollout status deployment/anki-handler -n anki-handler --timeout=120s

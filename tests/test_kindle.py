@@ -89,16 +89,13 @@ class TestFormatNote:
         assert deck == "Sapiens (Yuval Noah Harari)"
         assert back == "History began when humans invented gods"
 
-    def test_passage_front_is_uuid_format(self) -> None:
+    def test_passage_front_equals_highlighted_text(self) -> None:
         front, _back, _deck = format_note(
             "Sapiens (Yuval Noah Harari)",
             "History began when humans invented gods",
         )
 
-        # UUID4 format: 8-4-4-4-12 hex characters
-        parts = front.split("-")
-        assert len(parts) == 5
-        assert [len(p) for p in parts] == [8, 4, 4, 4, 12]
+        assert front == "History began when humans invented gods"
 
     def test_single_word_with_none_definition(
         self, monkeypatch: pytest.MonkeyPatch

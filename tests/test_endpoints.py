@@ -4,17 +4,27 @@ Mocks the service layer (anki_connect, kindle) to test HTTP behavior:
 status codes, response bodies, and error handling.
 """
 
-import pytest
-from fastapi.testclient import TestClient
 from http import HTTPStatus
 
-from api.main import app
+import pytest
+from fastapi.testclient import TestClient
+
 from api.exceptions import AnkiConnectError, AnkiConnectUnavailableError
+from api.main import app
 
 
 @pytest.fixture()
 def client() -> TestClient:
     return TestClient(app)
+
+
+class TestHealthzEndpoint:
+
+    def test_returns_200_with_status_ok(self, client: TestClient) -> None:
+        response = client.get("/healthz")
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.json() == {"status": "ok"}
 
 
 class TestCreateFlashcardEndpoint:
@@ -206,4 +216,6 @@ class TestProcessKindleClippingsEndpoint:
         body = response.json()
         assert body["created"] == 2
         assert body["failed"] == 1
-        assert body["errors"] == ["duplicate note"]
+        assert body["errors"] == [
+            [{"deckName": "Default", "modelName": "Basic", "front": "word2", "back": "def2", "tags": []}, "duplicate note"]
+        ]

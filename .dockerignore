@@ -1,0 +1,12 @@
+.venv
+.git
+.github
+.gitignore
+.env
+.claude
+__pycache__
+*.pyc
+tests/
+k8s/
+*.apkg
+PLAN.md
