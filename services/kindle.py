@@ -22,7 +22,7 @@ def parse_highlights(highlights: list[str]) -> list[Note]:
     for highlight in highlights:
         text_and_author, highlighted_text = parse_highlight(highlight)
         card_front, card_back, deck_name = format_note(text_and_author, highlighted_text)
-        if card_back == "":
+        if not card_back:
             continue
         note = Note(
             deckName=deck_name,
@@ -34,7 +34,7 @@ def parse_highlights(highlights: list[str]) -> list[Note]:
 
 
 def parse_highlight(highlight: str) -> tuple[str, str]:
-    lines = highlight.split("\n")
+    lines = [line.strip() for line in highlight.split("\n")]
     title_and_author = lines[0] if lines[0] else lines[1]
     highlighted_text = lines[4]
 
